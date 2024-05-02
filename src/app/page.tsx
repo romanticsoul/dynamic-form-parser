@@ -1,30 +1,42 @@
 "use client";
 import { Button } from "@/components/button";
 import { Dropzone } from "@/components/dropzone";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  // TODO:
-  // const saveFile = (files: File[]) => {
-  //   files.forEach((file) => {
-  //     const reader = new FileReader();
-  //     reader.onload = (event) => {
-  //       const fileContent = event.target?.result;
-  //       if (typeof fileContent === "string") {
-  //         cookies().set(file.name, encodeURIComponent(fileContent));
-  //       }
-  //     };
-  //     reader.readAsText(file);
-  //   });
-  // };
+  const [files, setFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    const initialFiles = Object.entries(localStorage)
+      .filter(([key]) => key.endsWith(".json"))
+      .map<File>(
+        ([key, value]) => new File([value], key, { type: "application/json" }),
+      );
+    setFiles(initialFiles);
+  }, [setFiles]);
+
+  const handleChangeFile = async (newFiles: File[]) => {
+    setFiles(newFiles);
+    localStorage.clear();
+    const results = await Promise.all(newFiles.map((file) => file.text()));
+    results.forEach((content, i) =>
+      localStorage.setItem(newFiles[i].name, content),
+    );
+  };
 
   return (
-    <main className="container box-border flex min-h-svh max-w-lg flex-col justify-center py-12">
+    <main>
       <Dropzone
+        files={files}
         multiple
         accept=".json"
-        // onChange={saveFile}
-        onDelete={(file) => console.log(file)}
-        appendFileItem={(file) => <Button variant="muted">Открыть</Button>}
+        onChange={handleChangeFile}
+        appendFileItem={(file) => (
+          <Link href={file.name.replace(/\.[^./]+$/, "")}>
+            <Button variant="muted">Открыть</Button>
+          </Link>
+        )}
       />
     </main>
   );

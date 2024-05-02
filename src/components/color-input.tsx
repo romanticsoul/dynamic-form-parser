@@ -35,6 +35,7 @@ export const ColorInput = forwardRef<HTMLInputElement, ColorInputProps>(
         <Input
           label={label}
           {...props}
+          type="text"
           ref={ref}
           onChange={handleChange}
           value={props.value || value}

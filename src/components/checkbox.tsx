@@ -14,7 +14,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, label, ...props }, ref) => {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <div className="relative box-border size-5 rounded border-2 bg-muted transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary">
+        <div className="relative box-border size-5 rounded border-2 bg-muted transition-colors hover:border-primary/20 hover:bg-primary/10 has-[:checked]:border-primary has-[:checked]:bg-primary">
           <input
             type="checkbox"
             className="peer relative z-10 block size-full cursor-pointer appearance-none"

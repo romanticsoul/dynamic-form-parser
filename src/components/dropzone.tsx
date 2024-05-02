@@ -1,7 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { FileUpIcon, FileTextIcon, FileImageIcon, XIcon } from "lucide-react";
+import {
+  useRef,
+  useImperativeHandle,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import {
+  FileUpIcon,
+  FileTextIcon,
+  FileImageIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { Label } from "./label";
@@ -15,6 +26,7 @@ type DropzoneProps = Omit<
   onChange?: (files: File[]) => void;
   onDelete?: (file: File) => void;
   appendFileItem?: (file: File) => React.ReactNode;
+  files?: File[];
 };
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -27,28 +39,54 @@ function formatBytes(bytes: number, decimals = 2) {
 }
 
 export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
-  ({ className, style, appendFileItem, onDelete, onChange, ...props }, ref) => {
-    const [files, setFiles] = useState<File[]>([]);
+  (
+    {
+      className,
+      style,
+      files: initialFiles,
+      appendFileItem,
+      onDelete,
+      onChange,
+      ...props
+    },
+    ref,
+  ) => {
+    const [files, setFiles] = useState(initialFiles || []);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newFiles = Array.from(e.target.files || []);
-      updateFiles(newFiles);
-    };
+    useImperativeHandle(ref, () => inputRef.current!);
 
-    const handleRemoveFile = (index: number) => {
-      const newFiles = files.filter((_, i) => i !== index);
-      onDelete?.(files[index]);
-      updateFiles(newFiles);
-    };
+    useEffect(() => {
+      if (initialFiles) {
+        setFiles(initialFiles);
+      }
+    }, [initialFiles]);
 
-    const updateFiles = (files: File[]) => {
+    useEffect(() => {
+      if (!files.length || !inputRef.current) return;
       const data = new DataTransfer();
       files.forEach((file) => data.items.add(file));
-      if (inputRef.current) inputRef.current.files = data.files;
-      onChange?.(files);
-      setFiles(files);
-    };
+      inputRef.current.files = data.files;
+    }, [files]);
+
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newFiles = Array.from(e.target.files || []);
+        onChange?.(newFiles);
+        setFiles(newFiles);
+      },
+      [onChange],
+    );
+
+    const handleRemoveFile = useCallback(
+      (file: File) => {
+        const newFiles = files.filter((f) => f !== file);
+        setFiles(newFiles);
+        onChange?.(newFiles);
+        onDelete?.(file);
+      },
+      [files, onDelete, onChange],
+    );
 
     return (
       <div className={cn("flex flex-col gap-1", className)} style={style}>
@@ -61,11 +99,11 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
          * TODO: Второй вариант фона для Dropzone. Еще не решил, какой из них красивее (использовать вместо "bg-muted").
          * bg-[url('/dropzone-background.svg')] bg-[length:20px_20px] bg-center shadow-[inset_0px_0px_50px_30px_#f4f4f5]
          */}
-        <div className="group relative flex flex-1 flex-col items-center justify-center gap-1 overflow-hidden rounded border-2 border-dashed bg-muted py-4 transition-colors hover:border-primary/20 has-[:focus-visible]:border-primary">
+        <div className="group relative flex flex-1 flex-col items-center justify-center gap-1 overflow-hidden rounded border-2 border-dashed bg-muted py-4 transition-colors hover:border-primary/20 hover:bg-primary/10 has-[:focus-visible]:border-primary">
           <input
             type="file"
             onChange={handleChange}
-            ref={ref || inputRef}
+            ref={inputRef}
             {...props}
             className="peer absolute z-10 size-full  min-w-0 opacity-0"
           />
@@ -89,11 +127,11 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
                   <>
                     <Button
                       variant="text"
-                      className="size-10 p-0 opacity-50 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-                      onClick={() => handleRemoveFile(index)}
+                      className="size-10 p-0 opacity-50 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+                      onClick={() => handleRemoveFile(file)}
                     >
                       <span className="sr-only">Удалить изображение</span>
-                      <XIcon className="size-4" />
+                      <Trash2Icon className="size-4" />
                     </Button>
                     {appendFileItem && appendFileItem(file)}
                   </>

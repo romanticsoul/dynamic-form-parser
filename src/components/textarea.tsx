@@ -13,7 +13,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && <Label htmlFor={props.id}>{label}</Label>}
         <textarea
           rows={rows}
-          className="min-h-10 rounded border-2 bg-muted p-2 transition-colors focus-within:border-primary"
+          className="min-h-10 rounded border-2 bg-muted p-2 transition-colors focus-within:border-primary [&:hover:not(:focus-within)]:border-primary/20 [&:hover:not(:focus-within)]:bg-primary/10"
           ref={ref}
           {...props}
         ></textarea>
