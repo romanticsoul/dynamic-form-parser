@@ -1,5 +1,6 @@
 "use client";
 import type { Form } from "@/types/Form";
+import { ChevronLeftIcon } from "lucide-react";
 import { Input } from "@/components/input";
 import { ColorInput } from "@/components/color-input";
 import { Textarea } from "@/components/textarea";
@@ -7,6 +8,7 @@ import { Checkbox } from "@/components/checkbox";
 import { Dropzone } from "@/components/dropzone";
 import { Select } from "@/components/select";
 import { Button } from "@/components/button";
+import { Dialog } from "@/components/dialog";
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useFormState } from "react-dom";
 import { parseFormData } from "./action";
@@ -18,11 +20,16 @@ type DynamicFormProps = React.FormHTMLAttributes<HTMLFormElement> & {
 
 export const DynamicForm = forwardRef<HTMLFormElement, DynamicFormProps>(
   ({ formSchema: form, ...props }, ref) => {
+    const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState<{
       [key: string]: string | boolean | number | File[];
     }>({});
-
     const [state, formAction] = useFormState(parseFormData, null);
+
+    useEffect(() => {
+      if (state != null) setOpen(true);
+      else setOpen(false);
+    }, [state]);
 
     const requiredFields = useMemo(
       () => form.form_fields.filter((field) => field.required),
@@ -88,9 +95,28 @@ export const DynamicForm = forwardRef<HTMLFormElement, DynamicFormProps>(
 
     return (
       <form ref={ref} {...props} action={formAction}>
-        {JSON.stringify(state)}
+        <Dialog
+          open={open}
+          onClose={() => setOpen(false)}
+          title="Форма успешно отправлена"
+          footer={
+            <Link href={"/"}>
+              <Button className="w-full" variant="muted">
+                На главную
+              </Button>
+            </Link>
+          }
+        >
+          <code>{JSON.stringify(state)}</code>
+        </Dialog>
         <div className="mb-4 text-center">
-          <h1 className="text-3xl font-semibold">{form.form_name}</h1>
+          <Link href="/">
+            <Button variant="muted">
+              <ChevronLeftIcon className="mr-1 size-5" />
+              На главную
+            </Button>
+          </Link>
+          <h1 className="mt-10 text-3xl font-semibold">{form.form_name}</h1>
           {form.form_description && <p>{form.form_description}</p>}
         </div>
         <div className="grid gap-4">

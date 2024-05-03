@@ -6,13 +6,15 @@ import { useFormStatus } from "react-dom";
 import { LoaderCircleIcon } from "lucide-react";
 
 const buttonVariants = cva(
-  "box-border flex select-none items-center justify-center rounded text-xs font-semibold transition-colors",
+  "box-border flex select-none items-center justify-center rounded text-xs font-semibold transition-all disabled:opacity-50",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-background hover:bg-primary/95",
-        text: "bg-transparent text-inherit hover:bg-primary/5",
-        muted: "border-2 bg-muted hover:border-primary/20 hover:bg-primary/10",
+        primary:
+          "bg-primary text-background [&:not([disabled]):hover]:bg-primary/90",
+        text: "bg-transparent text-inherit [&:not([disabled]):hover]:bg-primary/5",
+        muted:
+          "border-2 bg-muted [&:not([disabled]):hover]:border-primary/20 [&:not([disabled]):hover]:bg-primary/10",
       },
       size: {
         small: "h-8 px-3",
@@ -31,17 +33,25 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonVariants> & {};
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, disabled, size, children, ...props }, ref) => {
+  (
+    { className, variant, type = "button", disabled, size, children, ...props },
+    ref,
+  ) => {
     const { pending } = useFormStatus();
 
     return (
       <button
+        type={type}
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || pending}
         {...props}
       >
-        {pending ? <LoaderCircleIcon className="animate-spin" /> : children}
+        {pending && type === "submit" ? (
+          <LoaderCircleIcon className="animate-spin" />
+        ) : (
+          children
+        )}
       </button>
     );
   },

@@ -77,6 +77,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             />
             {type === "password" && (
               <button
+                type="button"
                 className="flex aspect-square h-full items-center justify-center bg-inherit"
                 onClick={() =>
                   setFieldType(fieldType === "password" ? "text" : "password")
